@@ -1,0 +1,15 @@
+# Environment variables
+.env
+server/.env
+# Node
+node_modules/
+npm-debug.log*
+
+# Environment variables
+.env
+server/.env
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.vscode/

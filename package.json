@@ -1,0 +1,23 @@
+{
+  "name": "stymies-painting-solutions",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "client": "npm run dev --prefix client",
+    "server": "nodemon src/index.js --watch server",
+    "dev": "concurrently -k -n CLIENT,SERVER -c red,blue \"npm run client\" \"npm run server\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.11"
+  }
+}
