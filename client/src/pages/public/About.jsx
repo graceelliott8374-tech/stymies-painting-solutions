@@ -1,4 +1,13 @@
+import useSEO from "../../utils/useSEO";
+
 export default function About() {
+  useSEO({
+    title: "About | Stymie’s Painting Solutions",
+    description:
+      "Meet Stymie’s Painting Solutions: a local, detail-focused painting company serving Richmond & Columbia County, GA. Quality prep, clean finishes, and dependable scheduling.",
+    canonicalPath: "/about",
+  });
+
   return (
     <>
       <section className="section section--light">
@@ -9,6 +18,10 @@ export default function About() {
             exterior painting with a focus on prep, clean work, and results that
             last.
           </p>
+          <p style={{ marginTop: 8, fontWeight: 600 }}>
+            Fully insured with General Liability coverage. OSHA 10 certification
+            scheduled for February.
+          </p>
           <p>
             Every job is approached with the same standards: protect the space,
             communicate clearly, and deliver a finish you can be proud of.
@@ -18,6 +31,7 @@ export default function About() {
 
       <section className="section section--gray">
         <div className="container">
+          <h2>What Sets Us Apart</h2>
           <div className="cards-grid">
             <div className="card">
               <h3>Quality First</h3>

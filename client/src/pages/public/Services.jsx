@@ -1,62 +1,154 @@
+import useSEO from "../../utils/useSEO";
+
 export default function Services() {
+  useSEO({
+    title: "Painting Services | Stymie’s Painting Solutions",
+    description:
+      "Professional painting services in Richmond & Columbia County, GA. Interior painting, exterior painting, cabinet painting, and detailed prep work. Free estimates available.",
+    canonicalPath: "/services",
+  });
+
   return (
     <>
       <section className="section section--light">
         <div className="container" style={{ maxWidth: 720 }}>
-          <h1>Services</h1>
+          <h1>
+            Interior, Exterior &amp; Cabinet Painting in Richmond &amp; Columbia
+            County, GA
+          </h1>
+
           <p>
-            Interior and exterior painting, prep work, and staining. Clean work,
-            reliable scheduling, and a finish that lasts.
+            Stymie&apos;s Painting Solutions provides residential painting and
+            surface preparation services for homeowners throughout Richmond and
+            Columbia County, Georgia. With 10+ years of hands-on experience, we
+            focus on clean prep, reliable scheduling, and finishes that hold up.
+          </p>
+
+          <p style={{ marginTop: 8, fontWeight: 600 }}>
+            Fully insured with General Liability coverage. OSHA 10 certification
+            scheduled for February.
           </p>
 
           <a href="/quote" className="button button-primary">
-            Get a Free Quote
+            Get a Free Estimate
           </a>
         </div>
       </section>
 
       <section className="section section--gray">
         <div className="container">
+          <h2>Our Residential Painting Services</h2>
           <div className="cards-grid">
+            {/* Interior */}
             <div className="card">
               <h3>Interior Painting</h3>
-              <p>Walls, ceilings, trim, doors, and detailed finish work.</p>
+              <p>
+                Interior house painting with clean edges, careful prep, and
+                minimal disruption.
+              </p>
               <ul className="bullets">
-                <li>Protect floors and furniture</li>
-                <li>Patch and sand as needed</li>
+                <li>Floors and furniture protected</li>
+                <li>Patching and sanding as needed</li>
                 <li>Clean lines and even coverage</li>
               </ul>
+              <a
+                href="/interior-painting"
+                className="button button-outline"
+                style={{ marginTop: 12 }}
+              >
+                Learn More
+              </a>
             </div>
 
+            {/* Exterior */}
             <div className="card">
               <h3>Exterior Painting</h3>
-              <p>Durable finishes with prep that holds up to weather.</p>
+              <p>
+                Exterior house painting with durable finishes and prep built for
+                local weather.
+              </p>
               <ul className="bullets">
-                <li>Scrape, sand, and spot-prime</li>
-                <li>Caulking and surface prep</li>
-                <li>Clean, consistent finish</li>
+                <li>Scraping, sanding, and spot priming</li>
+                <li>Caulking and surface preparation</li>
+                <li>Consistent, long-lasting finish</li>
               </ul>
+              <a
+                href="/exterior-painting"
+                className="button button-outline"
+                style={{ marginTop: 12 }}
+              >
+                Learn More
+              </a>
             </div>
 
+            {/* Cabinets */}
             <div className="card">
-              <h3>Prep & Repairs</h3>
-              <p>Prep is where the quality comes from. We don’t skip it.</p>
+              <h3>Cabinet Painting</h3>
+              <p>
+                Cabinet painting that updates kitchens and baths with a smooth,
+                durable finish.
+              </p>
+              <ul className="bullets">
+                <li>Degreasing and surface cleaning</li>
+                <li>Sanding for proper adhesion</li>
+                <li>Priming before finish coats</li>
+              </ul>
+              <a
+                href="/cabinet-painting"
+                className="button button-outline"
+                style={{ marginTop: 12 }}
+              >
+                Learn More
+              </a>
+            </div>
+
+            {/* Drywall */}
+            <div className="card">
+              <h3>Drywall Repair</h3>
+              <p>
+                Drywall patching and surface prep so your walls look smooth and
+                paint-ready.
+              </p>
               <ul className="bullets">
                 <li>Minor drywall patching</li>
                 <li>Hole filling and caulking</li>
-                <li>Sanding and smoothing</li>
+                <li>Sanding and surface smoothing</li>
               </ul>
+              <a
+                href="/drywall-repair"
+                className="button button-outline"
+                style={{ marginTop: 12 }}
+              >
+                Learn More
+              </a>
             </div>
 
+            {/* Staining */}
             <div className="card">
-              <h3>Staining</h3>
-              <p>Decks, fences, and wood features with proper protection.</p>
+              <h3>Deck &amp; Fence Staining</h3>
+              <p>
+                Outdoor wood staining to protect decks and fences while
+                enhancing curb appeal.
+              </p>
               <ul className="bullets">
-                <li>Even application and coverage</li>
-                <li>Weather-resistant finishes</li>
-                <li>Cleanup and touch-ups</li>
+                <li>Cleaning and prep for proper adhesion</li>
+                <li>Even application for a consistent finish</li>
+                <li>Protection from sun and moisture</li>
               </ul>
+              <a
+                href="/staining"
+                className="button button-outline"
+                style={{ marginTop: 12 }}
+              >
+                Learn More
+              </a>
             </div>
+          </div>
+
+          <div style={{ marginTop: 24 }}>
+            <a href="/quote" className="button button-primary">
+              Get a Free Estimate
+            </a>
           </div>
         </div>
       </section>

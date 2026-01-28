@@ -1,16 +1,23 @@
 import gallery from "../../data/gallery";
+import useSEO from "../../utils/useSEO";
 import { useState } from "react";
 import Lightbox from "../../components/common/Lightbox";
 
 export default function Gallery() {
   const [lightbox, setLightbox] = useState({ open: false, src: "", alt: "" });
+  useSEO({
+    title: "Painting Project Gallery | Stymie’s Painting Solutions",
+    description:
+      "View recent interior, exterior, and cabinet painting projects from Stymie’s Painting Solutions in Richmond & Columbia County, GA.",
+    canonicalPath: "/gallery",
+  });
 
   return (
     <section className="section section--light">
       <div className="container">
-        <h1>Gallery</h1>
+        <h1>Recent Painting Projects in Richmond &amp; Columbia County, GA</h1>
         <p>Before-and-after work from recent projects.</p>
-
+        <h2>Before &amp; After Gallery</h2>
         <div className="gallery-grid">
           {gallery.map((item) => (
             <div key={item.id} className="gallery-item card">
