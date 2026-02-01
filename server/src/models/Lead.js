@@ -39,8 +39,13 @@ const LeadSchema = new mongoose.Schema(
       enum: ["new", "contacted", "quoted", "scheduled", "closed"],
       default: "new",
     },
+    followUpDate: {
+      type: Date,
+      default: null,
+    },
     archived: { type: Boolean, default: false },
   },
+
   {
     timestamps: true,
   },

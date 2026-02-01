@@ -28,6 +28,7 @@ export default function AdminLayout() {
           <nav style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <Link to="/admin">Dashboard</Link>
             <Link to="/admin/leads">Leads</Link>
+            <Link to="/admin/reviews">Reviews</Link>
           </nav>
         </aside>
 

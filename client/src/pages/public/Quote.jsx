@@ -1,5 +1,7 @@
 import { useState } from "react";
 import useSEO from "../../utils/useSEO";
+import { Link } from "react-router-dom";
+
 
 export default function Quote() {
   const [submitted, setSubmitted] = useState(false);
@@ -22,9 +24,9 @@ export default function Quote() {
               possible.
             </p>
 
-            <a href="/" className="button button-primary">
+            <Link to="/" className="button button-primary">
               Back to Home
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -57,7 +59,7 @@ export default function Quote() {
                 email: formData.get("email"),
                 phone: formData.get("phone"),
                 serviceType: formData.get("serviceType"),
-                details: formData.get("details"),
+                message: formData.get("message"),
               };
 
               try {
@@ -124,7 +126,7 @@ export default function Quote() {
             <div className="form-group">
               <label>Project Details</label>
               <textarea
-                name="details"
+                name="message"
                 rows="4"
                 placeholder="Tell us about the project"
               />

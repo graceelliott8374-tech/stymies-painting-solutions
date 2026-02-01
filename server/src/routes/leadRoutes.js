@@ -2,6 +2,16 @@ const express = require("express");
 const router = express.Router();
 const Lead = require("../models/Lead");
 const requireAuth = require("../middleware/requireAuth");
+const asyncHandler = require("../utils/asyncHandler");
+const httpError = require("../utils/httpError");
+const { sendLeadNotification } = require("../utils/sendEmail");
+
+const isValidObjectId = require("../utils/isValidObjectId");
+const {
+  validateContactLead,
+  validateLeadCreate,
+} = require("../validators/leadValidators");
+const requireRole = require("../middleware/requireRole");
 
 const rateLimit = require("express-rate-limit");
 
@@ -10,164 +20,232 @@ const createLeadLimiter = rateLimit({
   max: 10, // max 10 submissions per IP per window
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "Too many submissions. Please try again later." },
+  message: {
+    success: false,
+    message: "Too many submissions. Please try again later.",
+  },
 });
 
 // POST /api/leads/contact  (PUBLIC short contact form)
-router.post("/contact", createLeadLimiter, async (req, res) => {
-  try {
+router.post(
+  "/contact",
+  createLeadLimiter,
+  asyncHandler(async (req, res) => {
     // If DB isn't configured yet, don't pretend it worked.
     if (!process.env.MONGO_URI) {
-      return res.status(503).json({
-        error: "Database not configured yet. Lead saving is disabled for now.",
-      });
+      return httpError(
+        res,
+        503,
+        "Database not configured yet. Lead saving is disabled for now.",
+      );
     }
 
-    const { name, email, phone, city, message, website } = req.body;
+    const result = validateContactLead(req.body);
 
-    // Honeypot: bots often fill hidden fields
-    if (website && String(website).trim().length > 0) {
-      return res.status(200).json({ ok: true }); // pretend success to waste bot time
+    // Honeypot hit: pretend success to waste bot time
+    if (!result.ok && result.bot) {
+      return res.status(200).json({ ok: true });
     }
 
-    // Minimal validation for contact form
-    if (!name || !message) {
-      return res.status(400).json({
-        error: "Name and Message are required.",
-      });
+    // Validation errors
+    if (!result.ok) {
+      return httpError(res, 400, "Validation error", result.errors);
     }
 
-    // Require at least one contact method
-    const hasEmail = !!(email && String(email).trim());
-    const hasPhone = !!(phone && String(phone).trim());
-
-    if (!hasEmail && !hasPhone) {
-      return res.status(400).json({
-        error: "Please provide an Email or Phone number so we can contact you.",
-      });
-    }
-
-    // Lead model requires email. If user provided only phone, store a safe placeholder email.
-    const normalizedEmail = hasEmail
-      ? String(email).trim().toLowerCase()
-      : `phone-only+${Date.now()}@stymies.local`;
-
-    // Store city/area in address (model already has address)
-    const address = city ? String(city).trim() : "";
-
-    // Add context to message so admin understands how to reply
-    const safeMessage = String(message).trim();
-    const contactNote = hasEmail ? "" : "\n\nPreferred contact: phone (no email provided).";
-    const finalMessage = safeMessage + contactNote;
+    const { name, email, phone, address, message } = result.value;
 
     const lead = await Lead.create({
-      name: String(name).trim(),
-      email: normalizedEmail,
-      phone: hasPhone ? String(phone).trim() : "",
+      name,
+      email,
+      phone,
       address,
       serviceType: "General Inquiry",
-      message: finalMessage,
+      message,
+    });
+    sendLeadNotification({
+      subject: "New Contact Form Submission",
+      text: `
+New contact form submission:
+
+Name: ${lead.name}
+Email: ${lead.email}
+Phone: ${lead.phone || "N/A"}
+Message:
+${lead.message || "N/A"}
+
+This lead has been saved in the dashboard.
+`,
     });
 
-    return res.status(201).json(lead);
-  } catch (err) {
-    return res.status(400).json({ error: err.message });
-  }
-});
+    res.status(201).json(lead);
+  }),
+);
 
 // POST /api/leads
-router.post("/", createLeadLimiter, async (req, res) => {
-  try {
+router.post(
+  "/",
+  createLeadLimiter,
+  asyncHandler(async (req, res) => {
     // If DB isn't configured yet, don't pretend it worked.
     if (!process.env.MONGO_URI) {
-      return res.status(503).json({
-        error: "Database not configured yet. Lead saving is disabled for now.",
-      });
+      return httpError(
+        res,
+        503,
+        "Database not configured yet. Lead saving is disabled for now.",
+      );
     }
 
-    const { name, email, phone, serviceType, message, website } = req.body;
-    // Honeypot: bots often fill hidden fields
-    if (website && String(website).trim().length > 0) {
-      return res.status(200).json({ ok: true }); // pretend success to waste bot time
+    const result = validateLeadCreate(req.body);
+
+    // Honeypot hit: pretend success to waste bot time
+    if (!result.ok && result.bot) {
+      return res.status(200).json({ ok: true });
     }
 
-    // Minimal validation
-    if (!name || !email || !serviceType) {
-      return res.status(400).json({
-        error: "Name, Email, and Type of Service are required.",
-      });
+    // Validation errors
+    if (!result.ok) {
+      return httpError(res, 400, "Validation error", result.errors);
     }
+
+    const { name, email, phone, serviceType, message } = result.value;
 
     const lead = await Lead.create({
-      name: name.trim(),
-      email: email.trim(),
-      phone: phone ? phone.trim() : "",
+      name,
+      email,
+      phone,
       serviceType,
-      message: message ? message.trim() : "",
+      message,
     });
+sendLeadNotification({
+  subject: "New Estimate Request",
+  text: `
+New estimate request:
 
-    return res.status(201).json(lead);
-  } catch (err) {
-    return res.status(400).json({ error: err.message });
-  }
+Name: ${lead.name}
+Email: ${lead.email}
+Phone: ${lead.phone || "N/A"}
+Service Type: ${lead.serviceType || "N/A"}
+
+Message:
+${lead.message || "N/A"}
+
+This lead has been saved in the dashboard.
+`,
 });
-router.use(requireAuth);
+
+    res.status(201).json(lead);
+  }),
+);
+
+router.get("/ping", (req, res) => res.json({ ok: true }));
+
+// ...
+router.use(requireAuth, requireRole("admin"));
 
 // PATCH /api/leads/:id/admin-notes  (ADMIN)
-router.patch("/:id/admin-notes", async (req, res) => {
-  try {
+router.patch(
+  "/:id/admin-notes",
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return httpError(res, 400, "Invalid lead id.");
+    }
+
     const { adminNotes } = req.body;
 
     const updated = await Lead.findByIdAndUpdate(
-      req.params.id,
+      id,
       { adminNotes: adminNotes ? String(adminNotes).trim() : "" },
       { new: true, runValidators: true },
     );
 
     if (!updated) {
-      return res.status(404).json({ error: "Lead not found." });
+      return httpError(res, 404, "Lead not found.");
     }
 
-    return res.json(updated);
-  } catch (err) {
-    return res.status(400).json({ error: err.message });
-  }
-});
+    res.json(updated);
+  }),
+);
+
+// PATCH /api/leads/:id/follow-up  (ADMIN)
+router.patch(
+  "/:id/follow-up",
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return httpError(res, 400, "Invalid lead id.");
+    }
+
+    const { followUpDate } = req.body;
+
+    let value = null;
+
+    if (followUpDate !== null && followUpDate !== undefined) {
+      const parsed = new Date(followUpDate);
+      if (isNaN(parsed.getTime())) {
+        return httpError(res, 400, "Invalid follow-up date.");
+      }
+      value = parsed;
+    }
+
+    const updated = await Lead.findByIdAndUpdate(
+      id,
+      { followUpDate: value },
+      { new: true, runValidators: true },
+    );
+
+    if (!updated) {
+      return httpError(res, 404, "Lead not found.");
+    }
+
+    res.json(updated);
+  }),
+);
 
 // GET /api/leads
-router.get("/", async (req, res) => {
-  try {
+router.get(
+  "/",
+  asyncHandler(async (req, res) => {
     const showArchived = req.query.archived === "true";
-
     const query = showArchived ? {} : { archived: { $ne: true } };
 
     const leads = await Lead.find(query).sort({ createdAt: -1 });
-
-    return res.json(leads);
-  } catch (err) {
-    // DB not connected yet — safe fallback
-    return res.status(200).json([]);
-  }
-});
+    res.json(leads);
+  }),
+);
 
 // GET /api/leads/:id
-router.get("/:id", async (req, res) => {
-  try {
-    const lead = await Lead.findById(req.params.id);
+router.get(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
 
-    if (!lead) {
-      return res.status(404).json({ error: "Lead not found." });
+    if (!isValidObjectId(id)) {
+      return httpError(res, 400, "Invalid lead id.");
     }
 
-    return res.json(lead);
-  } catch (err) {
-    return res.status(400).json({ error: "Invalid lead id." });
-  }
-});
+    const lead = await Lead.findById(id);
+
+    if (!lead) {
+      return httpError(res, 404, "Lead not found.");
+    }
+
+    res.json(lead);
+  }),
+);
 
 // PATCH /api/leads/:id  (edit lead fields)
-router.patch("/:id", async (req, res) => {
-  try {
+router.patch(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return httpError(res, 400, "Invalid lead id.");
+    }
+
     const allowedFields = [
       "name",
       "email",
@@ -181,115 +259,124 @@ router.patch("/:id", async (req, res) => {
     for (const key of allowedFields) {
       if (req.body[key] !== undefined) {
         const val = req.body[key];
-
-        // Light normalization
-        if (typeof val === "string") updates[key] = val.trim();
-        else updates[key] = val;
+        updates[key] = typeof val === "string" ? val.trim() : val;
       }
     }
 
     // Optional: basic email normalization
-    if (updates.email) updates.email = updates.email.toLowerCase();
+    if (updates.email) updates.email = String(updates.email).toLowerCase();
 
     // If nothing valid was provided
     if (Object.keys(updates).length === 0) {
-      return res
-        .status(400)
-        .json({ error: "No valid fields provided to update." });
+      return httpError(res, 400, "No valid fields provided to update.");
     }
 
-    const updated = await Lead.findByIdAndUpdate(req.params.id, updates, {
+    const updated = await Lead.findByIdAndUpdate(id, updates, {
       new: true,
       runValidators: true,
     });
 
     if (!updated) {
-      return res.status(404).json({ error: "Lead not found." });
+      return httpError(res, 404, "Lead not found.");
     }
 
-    return res.json(updated);
-  } catch (err) {
-    return res.status(400).json({ error: err.message });
-  }
-});
+    res.json(updated);
+  }),
+);
 
 // PATCH /api/leads/:id/status
-router.patch("/:id/status", async (req, res) => {
-  try {
+router.patch(
+  "/:id/status",
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return httpError(res, 400, "Invalid lead id.");
+    }
+
     const { status } = req.body;
 
     const allowed = ["new", "contacted", "quoted", "scheduled", "closed"];
     if (!allowed.includes(status)) {
-      return res.status(400).json({ error: "Invalid status value." });
+      return httpError(res, 400, "Invalid status value.");
     }
 
-    const updated = await Lead.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true },
-    );
+    const updated = await Lead.findByIdAndUpdate(id, { status }, { new: true });
 
     if (!updated) {
-      return res.status(404).json({ error: "Lead not found." });
+      return httpError(res, 404, "Lead not found.");
     }
 
-    return res.json(updated);
-  } catch (err) {
-    return res.status(400).json({ error: err.message });
-  }
-});
+    res.json(updated);
+  }),
+);
 
 // PATCH /api/leads/:id/archive
-router.patch("/:id/archive", async (req, res) => {
-  try {
+router.patch(
+  "/:id/archive",
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return httpError(res, 400, "Invalid lead id.");
+    }
+
     const updated = await Lead.findByIdAndUpdate(
-      req.params.id,
+      id,
       { archived: true },
       { new: true },
     );
 
     if (!updated) {
-      return res.status(404).json({ error: "Lead not found." });
+      return httpError(res, 404, "Lead not found.");
     }
 
-    return res.json(updated);
-  } catch (err) {
-    return res.status(400).json({ error: err.message });
-  }
-});
+    res.json(updated);
+  }),
+);
 
 // PATCH /api/leads/:id/unarchive
-router.patch("/:id/unarchive", async (req, res) => {
-  try {
+router.patch(
+  "/:id/unarchive",
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return httpError(res, 400, "Invalid lead id.");
+    }
+
     const updated = await Lead.findByIdAndUpdate(
-      req.params.id,
+      id,
       { archived: false },
       { new: true },
     );
 
     if (!updated) {
-      return res.status(404).json({ error: "Lead not found." });
+      return httpError(res, 404, "Lead not found.");
     }
 
-    return res.json(updated);
-  } catch (err) {
-    return res.status(400).json({ error: err.message });
-  }
-});
+    res.json(updated);
+  }),
+);
 
 // DELETE /api/leads/:id
-router.delete("/:id", async (req, res) => {
-  try {
-    const deleted = await Lead.findByIdAndDelete(req.params.id);
+router.delete(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
 
-    if (!deleted) {
-      return res.status(404).json({ error: "Lead not found." });
+    if (!isValidObjectId(id)) {
+      return httpError(res, 400, "Invalid lead id.");
     }
 
-    return res.json({ success: true });
-  } catch (err) {
-    return res.status(400).json({ error: err.message });
-  }
-});
+    const deleted = await Lead.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return httpError(res, 404, "Lead not found.");
+    }
+
+    res.json({ success: true });
+  }),
+);
 
 module.exports = router;

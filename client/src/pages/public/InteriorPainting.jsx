@@ -1,4 +1,5 @@
 import useSEO from "../../utils/useSEO";
+import { Link } from "react-router-dom";
 
 export default function InteriorPainting() {
   useSEO({
@@ -30,9 +31,9 @@ export default function InteriorPainting() {
             scheduled for February.
           </p>
 
-          <a href="/quote" className="button button-primary">
+          <Link to="/quote" className="button button-primary">
             Get a Free Estimate
-          </a>
+          </Link>
         </div>
       </section>
 
@@ -83,13 +84,13 @@ export default function InteriorPainting() {
               </p>
               <ul className="bullets">
                 <li>
-                  <a href="/exterior-painting">Exterior Painting</a>
+                  <Link to="/exterior-painting">Exterior Painting</Link>
                 </li>
                 <li>
-                  <a href="/cabinet-painting">Cabinet Painting</a>
+                  <Link to="/cabinet-painting">Cabinet Painting</Link>
                 </li>
                 <li>
-                  <a href="/drywall-repair">Drywall Repair</a>
+                  <Link to="/drywall-repair">Drywall Repair</Link>
                 </li>
               </ul>
             </div>
@@ -100,9 +101,9 @@ export default function InteriorPainting() {
                 Tell us what you’re painting and where you’re located. We’ll
                 provide a clear estimate and a realistic timeline.
               </p>
-              <a href="/quote" className="button button-primary">
-                Request a Free Estimate
-              </a>
+              <Link to="/quote" className="button button-primary">
+                Get a Free Estimate
+              </Link>
             </div>
           </div>
         </div>

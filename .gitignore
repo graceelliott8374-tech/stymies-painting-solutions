@@ -8,6 +8,7 @@ npm-debug.log*
 # Environment variables
 .env
 server/.env
+client/.env
 
 # OS / editor junk
 .DS_Store

@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export default function DrywallRepair() {
   return (
     <>
@@ -17,9 +19,9 @@ export default function DrywallRepair() {
             scheduled for February.
           </p>
 
-          <a href="/quote" className="button button-primary">
+          <Link to="/quote" className="button button-primary">
             Get a Free Estimate
-          </a>
+          </Link>
         </div>
       </section>
 
@@ -73,13 +75,13 @@ export default function DrywallRepair() {
               </p>
               <ul className="bullets">
                 <li>
-                  <a href="/interior-painting">Interior Painting</a>
+                  <Link to="/interior-painting">Interior Painting</Link>
                 </li>
                 <li>
-                  <a href="/exterior-painting">Exterior Painting</a>
+                  <Link to="/exterior-painting">Exterior Painting</Link>
                 </li>
                 <li>
-                  <a href="/cabinet-painting">Cabinet Painting</a>
+                  <Link to="/cabinet-painting">Cabinet Painting</Link>
                 </li>
               </ul>
             </div>
@@ -91,9 +93,9 @@ export default function DrywallRepair() {
                 clear estimate and a realistic timeline.
               </p>
 
-              <a href="/quote" className="button button-primary">
-                Request a Free Estimate
-              </a>
+              <Link to="/quote" className="button button-primary">
+                Get a Free Estimate
+              </Link>
             </div>
           </div>
         </div>

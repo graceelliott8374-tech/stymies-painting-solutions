@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, Link } from "react-router-dom";
 import Header from "./Header";
 import HeroBanner from "./HeroBanner";
 
@@ -20,11 +20,11 @@ export default function PublicLayout() {
           </div>
 
           <div className="footer-links">
-            <a href="/services">Services</a>
-            <a href="/gallery">Gallery</a>
-            <a href="/about">About</a>
-            <a href="/contact">Contact</a>
-            <a href="/quote">Get a Quote</a>
+            <Link to="/services">Services</Link>
+            <Link to="/gallery">Gallery</Link>
+            <Link to="/about">About</Link>
+            <Link to="/contact">Contact</Link>
+            <Link to="/quote">Get a Quote</Link>
           </div>
 
           <div className="footer-copy">

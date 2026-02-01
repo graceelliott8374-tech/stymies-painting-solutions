@@ -1,4 +1,9 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import useSEO from "../../utils/useSEO";
+import PaintbrushRating from "../../components/reviews/PaintbrushRating";
+import { apiFetch } from "../../utils/apiFetch";
+import { reviewsSeed } from "../../data/reviewsSeed";
 
 export default function Home() {
   useSEO({
@@ -7,6 +12,42 @@ export default function Home() {
       "Professional interior and exterior painting in Richmond & Columbia County, GA. Clean prep, crisp lines, and reliable scheduling. Free estimates.",
     canonicalPath: "/",
   });
+
+  const [approvedReviews, setApprovedReviews] = useState([]);
+
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      try {
+        const res = await apiFetch("/api/reviews");
+        if (!res.ok) return; // fail quietly on homepage
+        const data = await res.json();
+        if (!alive) return;
+        setApprovedReviews(Array.isArray(data) ? data : []);
+      } catch {
+        // ignore on homepage
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const homeReviews = (
+    approvedReviews.length ? approvedReviews : reviewsSeed
+  ).map((r) => ({
+    id: r._id || r.id,
+    name:
+      r.name ||
+      `${r.firstName || ""}${r.lastInitial ? " " + r.lastInitial + "." : ""}`.trim() ||
+      "Anonymous",
+    rating: Number(r.rating ?? 0) || 0,
+    service: r.service || r.serviceType || "",
+    text: r.text || r.reviewText || "",
+  }));
+
   return (
     <>
       {/* Hero intro text under the banner/nav */}
@@ -45,16 +86,16 @@ export default function Home() {
           </ul>
 
           <div className="home-actions">
-            <a href="/quote" className="button button-primary">
+            <Link to="/quote" className="button button-primary">
               Get Your Free Estimate
-            </a>
-            <a
-              href="/services"
+            </Link>
+            <Link
+              to="/services"
               className="button button-outline"
               style={{ marginLeft: 12 }}
             >
               View Services
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -75,9 +116,9 @@ export default function Home() {
           </p>
 
           <div style={{ marginTop: 16 }}>
-            <a href="/gallery" className="button button-outline">
+            <Link to="/gallery" className="button button-outline">
               See Before & Afters
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -122,9 +163,9 @@ export default function Home() {
           </div>
 
           <div style={{ marginTop: 24 }}>
-            <a href="/quote" className="button button-primary">
+            <Link to="/quote" className="button button-primary">
               Request a Quote
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -169,8 +210,59 @@ export default function Home() {
           </div>
 
           <div style={{ marginTop: 24 }}>
-            <a href="/quote" className="button button-primary">
+            <Link to="/quote" className="button button-primary">
               Get a Free Quote
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Reviews preview */}
+      <section className="section section--light">
+        <div className="container">
+          <h2 style={{ marginBottom: 10 }}>Reviews</h2>
+          <p style={{ fontSize: 16 }}>
+            A few words from local homeowners. All reviews are approved before
+            publishing.
+          </p>
+
+          <div className="cards-grid" style={{ marginTop: 18 }}>
+            {homeReviews.slice(0, 3).map((r) => (
+              <div className="card" key={r.id}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    alignItems: "flex-start",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div style={{ fontWeight: 800 }}>{r.name}</div>
+
+                  <PaintbrushRating value={r.rating} />
+                </div>
+
+                <div style={{ marginTop: 6, fontSize: 14, color: "#666" }}>
+                  {r.service}
+                </div>
+
+                <p style={{ marginTop: 10 }}>{r.text}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="home-actions" style={{ marginTop: 18 }}>
+            <Link to="/reviews" className="button button-primary">
+              Read More Reviews
+            </Link>
+
+            <a
+              href="/reviews#leave-review"
+              className="button button-outline"
+              style={{ marginLeft: 12 }}
+            >
+              Leave a Review
             </a>
           </div>
         </div>

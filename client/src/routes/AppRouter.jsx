@@ -12,6 +12,7 @@ import ExteriorPainting from "../pages/public/ExteriorPainting";
 import CabinetPainting from "../pages/public/CabinetPainting";
 import DrywallRepair from "../pages/public/DrywallRepair";
 import Staining from "../pages/public/Staining";
+import Reviews from "../pages/public/Reviews";
 
 // Admin pages
 import Dashboard from "../pages/admin/Dashboard";
@@ -19,6 +20,8 @@ import Leads from "../pages/admin/Leads";
 import LeadDetails from "../pages/admin/LeadDetails";
 import AdminLogin from "../pages/admin/AdminLogin";
 import RequireAdmin from "../pages/admin/RequireAdmin";
+import ReviewsAdmin from "../pages/admin/ReviewsAdmin";
+
 
 // Layouts
 import PublicLayout from "../components/layout/PublicLayout";
@@ -42,6 +45,7 @@ export default function AppRouter() {
           <Route path="/about" element={<About />} />
           <Route path="/quote" element={<Quote />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/reviews" element={<Reviews />} />
         </Route>
 
         {/* Admin */}
@@ -58,6 +62,7 @@ export default function AppRouter() {
           <Route index element={<Dashboard />} />
           <Route path="leads" element={<Leads />} />
           <Route path="leads/:id" element={<LeadDetails />} />
+          <Route path="reviews" element={<ReviewsAdmin />} />
         </Route>
 
         {/* Fallback */}

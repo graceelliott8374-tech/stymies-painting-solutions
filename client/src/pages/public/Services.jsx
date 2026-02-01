@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 import useSEO from "../../utils/useSEO";
 
 export default function Services() {
@@ -29,9 +31,9 @@ export default function Services() {
             scheduled for February.
           </p>
 
-          <a href="/quote" className="button button-primary">
+          <Link to="/quote" className="button button-primary">
             Get a Free Estimate
-          </a>
+          </Link>
         </div>
       </section>
 
@@ -51,13 +53,13 @@ export default function Services() {
                 <li>Patching and sanding as needed</li>
                 <li>Clean lines and even coverage</li>
               </ul>
-              <a
-                href="/interior-painting"
+              <Link
+                to="/interior-painting"
                 className="button button-outline"
                 style={{ marginTop: 12 }}
               >
                 Learn More
-              </a>
+              </Link>
             </div>
 
             {/* Exterior */}
@@ -72,13 +74,13 @@ export default function Services() {
                 <li>Caulking and surface preparation</li>
                 <li>Consistent, long-lasting finish</li>
               </ul>
-              <a
-                href="/exterior-painting"
+              <Link
+                to="/exterior-painting"
                 className="button button-outline"
                 style={{ marginTop: 12 }}
               >
                 Learn More
-              </a>
+              </Link>
             </div>
 
             {/* Cabinets */}
@@ -93,13 +95,13 @@ export default function Services() {
                 <li>Sanding for proper adhesion</li>
                 <li>Priming before finish coats</li>
               </ul>
-              <a
-                href="/cabinet-painting"
+              <Link
+                to="/cabinet-painting"
                 className="button button-outline"
                 style={{ marginTop: 12 }}
               >
                 Learn More
-              </a>
+              </Link>
             </div>
 
             {/* Drywall */}
@@ -114,13 +116,13 @@ export default function Services() {
                 <li>Hole filling and caulking</li>
                 <li>Sanding and surface smoothing</li>
               </ul>
-              <a
-                href="/drywall-repair"
+              <Link
+                to="/drywall-repair"
                 className="button button-outline"
                 style={{ marginTop: 12 }}
               >
                 Learn More
-              </a>
+              </Link>
             </div>
 
             {/* Staining */}
@@ -135,20 +137,20 @@ export default function Services() {
                 <li>Even application for a consistent finish</li>
                 <li>Protection from sun and moisture</li>
               </ul>
-              <a
-                href="/staining"
+              <Link
+                to="/staining"
                 className="button button-outline"
                 style={{ marginTop: 12 }}
               >
                 Learn More
-              </a>
+              </Link>
             </div>
           </div>
 
           <div style={{ marginTop: 24 }}>
-            <a href="/quote" className="button button-primary">
+            <Link to="/quote" className="button button-primary">
               Get a Free Estimate
-            </a>
+            </Link>
           </div>
         </div>
       </section>

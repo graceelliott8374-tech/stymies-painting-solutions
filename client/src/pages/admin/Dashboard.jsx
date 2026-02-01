@@ -1,37 +1,127 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { apiFetch } from "../../utils/apiFetch";
 
 export default function Dashboard() {
   const [counts, setCounts] = useState(null);
   const [recent, setRecent] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [reviewStats, setReviewStats] = useState({ total: 0, avg: 0 });
+  const [approvedReviewCount, setApprovedReviewCount] = useState(0);
+  const [pendingReviewCount, setPendingReviewCount] = useState(0);
+
   const [error, setError] = useState("");
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("http://localhost:5000/api/leads", {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed to load leads");
+        // Load both in parallel
+        const [leadsRes, approvedRes] = await Promise.all([
+          apiFetch("/api/leads"),
+          apiFetch("/api/reviews"),
+        ]);
 
-        const leads = await res.json();
+        if (!leadsRes.ok)
+          throw new Error(`Leads fetch failed (${leadsRes.status})`);
+        if (!approvedRes.ok)
+          throw new Error(`Reviews fetch failed (${approvedRes.status})`);
 
+        const leads = await leadsRes.json();
+        const approvedReviews = await approvedRes.json();
+        const pendingRes = await apiFetch("/api/reviews/admin?status=pending");
+        if (!pendingRes.ok)
+          throw new Error(
+            `Pending reviews fetch failed (${pendingRes.status})`,
+          );
+        const pendingReviews = await pendingRes.json();
+
+
+        const leadList = Array.isArray(leads) ? leads : leads?.leads || [];
+       const approvedList = Array.isArray(approvedReviews)
+         ? approvedReviews
+         : approvedReviews?.reviews || [];
+
+       const pendingList = Array.isArray(pendingReviews)
+         ? pendingReviews
+         : pendingReviews?.reviews || [];
+
+       setApprovedReviewCount(approvedList.length);
+       setPendingReviewCount(pendingList.length);
+
+
+        // ----- lead counts -----
         const base = {
-          total: leads.length,
+          total: leadList.length,
           new: 0,
           contacted: 0,
           quoted: 0,
           scheduled: 0,
           closed: 0,
+          followOverdue: 0,
+          followToday: 0,
+          followUpcoming: 0,
         };
 
-        for (const l of leads) {
+        for (const l of leadList) {
           if (base[l.status] !== undefined) base[l.status]++;
+
+          // follow-up reminders
+          const d = l.followUpDate ? new Date(l.followUpDate) : null;
+          if (d && !isNaN(d.getTime())) {
+            const now = new Date();
+            const start = new Date(
+              now.getFullYear(),
+              now.getMonth(),
+              now.getDate(),
+              0,
+              0,
+              0,
+              0,
+            );
+            const end = new Date(
+              now.getFullYear(),
+              now.getMonth(),
+              now.getDate(),
+              23,
+              59,
+              59,
+              999,
+            );
+
+            if (d < start) base.followOverdue += 1;
+            else if (d >= start && d <= end) base.followToday += 1;
+            else {
+              const in7 = new Date(start);
+              in7.setDate(in7.getDate() + 7);
+              if (d <= in7) base.followUpcoming += 1;
+            }
+          }
         }
 
         setCounts(base);
+        setRecent(leadList.slice(0, 5));
 
-        setRecent(Array.isArray(leads) ? leads.slice(0, 5) : []);
+        // ----- reviews -----
+        const list = approvedList;
+
+        const total = list.length;
+
+        // rating can be rating, stars, or score depending on your model
+        const getRating = (r) =>
+          Number(r.rating ?? r.stars ?? r.score ?? 0) || 0;
+
+        const sum = list.reduce((acc, r) => acc + getRating(r), 0);
+        const avg = total ? sum / total : 0;
+
+        // sort newest first (just in case API doesn't)
+        const sorted = [...list].sort((a, b) => {
+          const da = new Date(a.createdAt || a.date || 0).getTime();
+          const db = new Date(b.createdAt || b.date || 0).getTime();
+          return db - da;
+        });
+
+        setReviewStats({ total, avg });
+        setReviews(sorted.slice(0, 5));
       } catch (err) {
         setError(err.message || "Failed to load dashboard.");
       }
@@ -49,8 +139,18 @@ export default function Dashboard() {
       { label: "Quoted", value: counts.quoted },
       { label: "Scheduled", value: counts.scheduled },
       { label: "Closed", value: counts.closed },
+      {
+        label: "Pending Reviews",
+        value: pendingReviewCount,
+        to: "/admin/reviews?status=pending",
+      },
+      {
+        label: "Approved Reviews",
+        value: approvedReviewCount,
+        to: "/admin/reviews?status=approved",
+      },
     ];
-  }, [counts]);
+  }, [counts, pendingReviewCount,  approvedReviewCount]);
 
   if (error) return <div style={{ color: "crimson" }}>{error}</div>;
   if (!counts) return <div>Loading dashboard…</div>;
@@ -93,24 +193,65 @@ export default function Dashboard() {
           gap: 12,
         }}
       >
-        {cards.map((c) => (
-          <div
-            key={c.label}
-            style={{
-              border: "1px solid #e5e7eb",
-              borderRadius: 14,
-              padding: 14,
-              background: "#fff",
-            }}
-          >
-            <div style={{ fontSize: 12, letterSpacing: 0.4, opacity: 0.7 }}>
-              {c.label}
+        {cards.map((c) => {
+          const card = (
+            <div
+              style={{
+                border: "1px solid #e5e7eb",
+                borderRadius: 14,
+                padding: 14,
+                background: "#fff",
+                cursor: c.to ? "pointer" : "default",
+              }}
+            >
+              <div style={{ fontSize: 12, letterSpacing: 0.4, opacity: 0.7 }}>
+                {c.label}
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 800, marginTop: 6 }}>
+                {c.value}
+              </div>
             </div>
-            <div style={{ fontSize: 28, fontWeight: 800, marginTop: 6 }}>
-              {c.value}
-            </div>
-          </div>
-        ))}
+          );
+
+          return c.to ? (
+            <Link
+              key={c.label}
+              to={c.to}
+              style={{ textDecoration: "none", color: "inherit" }}
+            >
+              {card}
+            </Link>
+          ) : (
+            <div key={c.label}>{card}</div>
+          );
+        })}
+      </div>
+
+      <div
+        style={{
+          border: "1px solid #e5e7eb",
+          borderRadius: 14,
+          padding: 14,
+          background: "#fff",
+        }}
+      >
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>
+          Follow-up reminders
+        </div>
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <Link to="/admin/leads?followup=overdue" style={pillStyle}>
+            Overdue: {counts.followOverdue}
+          </Link>
+
+          <Link to="/admin/leads?followup=today" style={pillStyle}>
+            Due today: {counts.followToday}
+          </Link>
+
+          <Link to="/admin/leads?followup=upcoming" style={pillStyle}>
+            Next 7 days: {counts.followUpcoming}
+          </Link>
+        </div>
       </div>
 
       {/* Recent leads */}
@@ -232,9 +373,6 @@ export default function Dashboard() {
           <Link to="/admin/leads?status=closed" style={pillStyle}>
             Closed
           </Link>
-        </div>
-        <div style={{ marginTop: 10, opacity: 0.7, fontSize: 13 }}>
-          (If the filters don’t apply yet, we’ll wire that next.)
         </div>
       </div>
     </div>

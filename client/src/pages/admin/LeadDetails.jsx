@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { apiFetch } from "../../utils/apiFetch";
 
 function formatDateTime(value) {
   if (!value) return "";
@@ -14,6 +15,8 @@ export default function LeadDetails() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [notesDirty, setNotesDirty] = useState(false);
+  const [followUpValue, setFollowUpValue] = useState("");
+  const [followUpDirty, setFollowUpDirty] = useState(false);
 
   useEffect(() => {
     function handleBeforeUnload(e) {
@@ -33,14 +36,18 @@ export default function LeadDetails() {
         setLoading(true);
         setError("");
 
-        const res = await fetch(`http://localhost:5000/api/leads/${id}`, {
-          credentials: "include",
-        });
+        const res = await apiFetch(`/api/leads/${id}`);
 
         if (!res.ok) throw new Error("Failed to load lead");
 
         const data = await res.json();
         setLead(data);
+        setFollowUpValue(
+          data.followUpDate
+            ? new Date(data.followUpDate).toISOString().slice(0, 16)
+            : "",
+        );
+        setFollowUpDirty(false);
         setNotesDirty(false);
       } catch (e) {
         setError(e.message || "Failed to load lead.");
@@ -57,10 +64,9 @@ export default function LeadDetails() {
       setSaving(true);
       setError("");
 
-      const res = await fetch(`http://localhost:5000/api/leads/${id}/status`, {
+      const res = await apiFetch(`/api/leads/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ status }),
       });
 
@@ -82,13 +88,9 @@ export default function LeadDetails() {
 
       const endpoint = lead.archived ? "unarchive" : "archive";
 
-      const res = await fetch(
-        `http://localhost:5000/api/leads/${id}/${endpoint}`,
-        {
-          method: "PATCH",
-          credentials: "include",
-        },
-      );
+      const res = await apiFetch(`/api/leads/${id}/${endpoint}`, {
+        method: "PATCH",
+      });
 
       if (!res.ok) throw new Error("Failed to update archive status");
 
@@ -101,32 +103,111 @@ export default function LeadDetails() {
     }
   }
 
- async function saveAdminNotes() {
-   try {
-     setSaving(true);
-     setError("");
+  async function saveAdminNotes() {
+    try {
+      setSaving(true);
+      setError("");
 
-     const res = await fetch(
-       `http://localhost:5000/api/leads/${id}/admin-notes`,
-       {
-         method: "PATCH",
-         headers: { "Content-Type": "application/json" },
-         credentials: "include",
-         body: JSON.stringify({ adminNotes: lead.adminNotes || "" }),
-       },
-     );
+      const res = await apiFetch(`/api/leads/${id}/admin-notes`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminNotes: lead.adminNotes || "" }),
+      });
 
-     if (!res.ok) throw new Error("Failed to save admin notes");
+      if (!res.ok) throw new Error("Failed to save admin notes");
 
-     const updated = await res.json();
-     setLead(updated);
-     setNotesDirty(false);
-   } catch (e) {
-     setError(e.message || "Failed to save admin notes.");
-   } finally {
-     setSaving(false);
-   }
- }
+      const updated = await res.json();
+      setLead(updated);
+      setNotesDirty(false);
+    } catch (e) {
+      setError(e.message || "Failed to save admin notes.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function setFollowUpPreset(daysAhead) {
+    const now = new Date();
+
+    const d = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + daysAhead,
+      9, // 9 AM
+      0,
+      0,
+      0,
+    );
+
+    // format for <input type="datetime-local"> => "YYYY-MM-DDTHH:mm"
+    const pad = (n) => String(n).padStart(2, "0");
+    const v = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+
+    setFollowUpValue(v);
+    setFollowUpDirty(true);
+  }
+
+
+  async function saveFollowUp() {
+    try {
+      setSaving(true);
+      setError("");
+
+      // datetime-local gives "YYYY-MM-DDTHH:mm" in local time.
+      // Convert to ISO so the server stores a real Date consistently.
+      const payload = followUpValue
+        ? { followUpDate: new Date(followUpValue).toISOString() }
+        : { followUpDate: null };
+
+      const res = await apiFetch(`/api/leads/${id}/follow-up`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Failed to save follow-up date");
+
+      const updated = await res.json();
+      setLead(updated);
+
+      // Sync the input with whatever the server saved
+      setFollowUpValue(
+        updated.followUpDate
+          ? new Date(updated.followUpDate).toISOString().slice(0, 16)
+          : "",
+      );
+      setFollowUpDirty(false);
+    } catch (e) {
+      setError(e.message || "Failed to save follow-up date.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function clearFollowUp() {
+    try {
+      setSaving(true);
+      setError("");
+
+      const res = await apiFetch(`/api/leads/${id}/follow-up`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ followUpDate: null }),
+      });
+
+      if (!res.ok) throw new Error("Failed to clear follow-up date");
+
+      const updated = await res.json();
+      setLead(updated);
+      setFollowUpValue("");
+      setFollowUpDirty(false);
+    } catch (e) {
+      setError(e.message || "Failed to clear follow-up date.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   if (loading) return <div>Loading lead…</div>;
   if (error) return <div style={{ color: "crimson" }}>{error}</div>;
@@ -272,6 +353,138 @@ export default function LeadDetails() {
         <div style={{ fontWeight: 800, marginBottom: 8 }}>Message</div>
         <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
           {lead.message?.trim() ? lead.message : "—"}
+        </div>
+      </div>
+
+      <div
+        style={{
+          marginTop: 16,
+          border: "1px solid #e5e7eb",
+          borderRadius: 14,
+          padding: 14,
+          background: "#fff",
+        }}
+      >
+        <div style={{ fontWeight: 800, marginBottom: 8 }}>Next follow-up</div>
+
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <input
+            type="datetime-local"
+            value={followUpValue}
+            onChange={(e) => {
+              setFollowUpValue(e.target.value);
+              setFollowUpDirty(true);
+            }}
+            style={{
+              padding: "8px 10px",
+              borderRadius: 10,
+              border: "1px solid #ddd",
+              background: "#fff",
+              fontSize: 14,
+            }}
+          />
+
+          <button
+            type="button"
+            onClick={saveFollowUp}
+            disabled={saving || !followUpDirty}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 10,
+              border: "1px solid #ddd",
+              background: followUpDirty ? "#fff" : "#f6f6f6",
+              cursor: saving || !followUpDirty ? "not-allowed" : "pointer",
+              fontSize: 14,
+              fontWeight: 700,
+            }}
+          >
+            Save Follow-up
+          </button>
+
+          <button
+            type="button"
+            onClick={clearFollowUp}
+            disabled={saving}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 10,
+              border: "1px solid #ddd",
+              background: "#fff",
+              cursor: saving ? "not-allowed" : "pointer",
+              fontSize: 14,
+              fontWeight: 700,
+            }}
+          >
+            Clear
+          </button>
+
+          {saving && (
+            <span style={{ fontSize: 12, opacity: 0.7 }}>Saving…</span>
+          )}
+          {!saving && !followUpDirty && (
+            <span style={{ fontSize: 12, opacity: 0.6 }}>Saved</span>
+          )}
+        </div>
+        <div
+          style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}
+        >
+          <button
+            type="button"
+            onClick={() => setFollowUpPreset(1)}
+            disabled={saving}
+            style={{
+              padding: "6px 10px",
+              borderRadius: 10,
+              border: "1px solid #ddd",
+              background: "#fff",
+              cursor: saving ? "not-allowed" : "pointer",
+              fontSize: 13,
+              fontWeight: 700,
+            }}
+          >
+            Tomorrow (9am)
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFollowUpPreset(3)}
+            disabled={saving}
+            style={{
+              padding: "6px 10px",
+              borderRadius: 10,
+              border: "1px solid #ddd",
+              background: "#fff",
+              cursor: saving ? "not-allowed" : "pointer",
+              fontSize: 13,
+              fontWeight: 700,
+            }}
+          >
+            +3 days (9am)
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFollowUpPreset(7)}
+            disabled={saving}
+            style={{
+              padding: "6px 10px",
+              borderRadius: 10,
+              border: "1px solid #ddd",
+              background: "#fff",
+              cursor: saving ? "not-allowed" : "pointer",
+              fontSize: 13,
+              fontWeight: 700,
+            }}
+          >
+            Next week (9am)
+          </button>
         </div>
       </div>
       <div

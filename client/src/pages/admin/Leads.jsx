@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams, useLocation } from "react-router-dom";
+import { apiFetch } from "../../utils/apiFetch";
 
 function normalizeStatus(s) {
   const v = String(s || "").toLowerCase();
@@ -17,28 +18,20 @@ export default function Leads() {
   const [fetching, setFetching] = useState(false);
   const [copied, setCopied] = useState(null);
   const copiedTimerRef = useRef(null);
+  const [followUpFilter, setFollowUpFilter] = useState("all");
 
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const statusFromUrl = searchParams.get("status");
   const qFromUrl = searchParams.get("q");
+  const followUpFromUrl = searchParams.get("followup");
 
   useEffect(() => {
     if (statusFromUrl) setStatusFilter(statusFromUrl);
     if (qFromUrl) setSearch(qFromUrl);
-  }, [statusFromUrl, qFromUrl]);
-
-  useEffect(() => {
-    const next = new URLSearchParams(searchParams);
-
-    if (statusFilter && statusFilter !== "all")
-      next.set("status", statusFilter);
-    else next.delete("status");
-
-    // keep existing q if present
-    setSearchParams(next, { replace: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter]);
+    if (followUpFromUrl) setFollowUpFilter(followUpFromUrl);
+    else setFollowUpFilter("all");
+  }, [statusFromUrl, qFromUrl, followUpFromUrl]);
 
   useEffect(() => {
     return () => {
@@ -71,7 +64,7 @@ export default function Leads() {
     if (leads.length === 0) setLoading(true);
     else setFetching(true);
 
-    fetch(url, { credentials: "include" })
+    apiFetch(url)
       .then((res) => res.json())
       .then((data) => {
         setLeads(Array.isArray(data) ? data : []);
@@ -87,12 +80,14 @@ export default function Leads() {
 
   async function updateStatus(id, status) {
     try {
-      const res = await fetch(`http://localhost:5000/api/leads/${id}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ status }),
-      });
+      const res = await apiFetch(
+        `http://localhost:5000/api/leads/${id}/status`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status }),
+        },
+      );
 
       if (!res.ok) {
         // optional: inspect error later
@@ -116,10 +111,12 @@ export default function Leads() {
     if (!ok) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/leads/${id}/archive`, {
-        method: "PATCH",
-        credentials: "include",
-      });
+      const res = await apiFetch(
+        `http://localhost:5000/api/leads/${id}/archive`,
+        {
+          method: "PATCH",
+        },
+      );
 
       if (!res.ok) return;
 
@@ -132,11 +129,10 @@ export default function Leads() {
 
   async function unarchiveLead(id) {
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `http://localhost:5000/api/leads/${id}/unarchive`,
         {
           method: "PATCH",
-          credentials: "include",
         },
       );
 
@@ -157,16 +153,20 @@ export default function Leads() {
           (l) => normalizeStatus(l.status || "new") === statusFilter,
         );
 
+  const followFilteredLeads = filteredLeads.filter((l) =>
+    matchesFollowUpFilter(l, followUpFilter),
+  );
+
   const query = search.trim().toLowerCase();
 
   const visibleLeads = query
-    ? filteredLeads.filter((l) => {
+    ? followFilteredLeads.filter((l) => {
         const haystack = `${l.name || ""} ${l.email || ""} ${
           l.phone || ""
         }`.toLowerCase();
         return haystack.includes(query);
       })
-    : filteredLeads;
+    : followFilteredLeads;
 
   const sortedLeads = [...visibleLeads].sort((a, b) => {
     const aDate = new Date(a.createdAt || 0);
@@ -186,6 +186,9 @@ export default function Leads() {
   );
 
   const archivedCount = leads.filter((l) => l.archived).length;
+  const overdueCount = leads.filter((l) =>
+    matchesFollowUpFilter(l, "overdue"),
+  ).length;
 
   function toggleSort() {
     setSortOrder((prev) => (prev === "newest" ? "oldest" : "newest"));
@@ -257,7 +260,35 @@ export default function Leads() {
           flexWrap: "wrap",
         }}
       >
-        <h1 style={{ marginBottom: 0 }}>Leads</h1>
+        <h1
+          style={{
+            marginBottom: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          Leads
+          {overdueCount > 0 && (
+            <span
+              style={{
+                display: "inline-block",
+                padding: "4px 10px",
+                borderRadius: 999,
+                fontSize: 12,
+                fontWeight: 900,
+                textTransform: "uppercase",
+                letterSpacing: "0.04em",
+                background: "#fef2f2",
+                color: "#991b1b",
+                border: "1px solid #fecaca",
+              }}
+              title="Leads with follow-ups overdue"
+            >
+              Overdue: {overdueCount}
+            </span>
+          )}
+        </h1>
 
         {fetching && (
           <span style={{ fontSize: 12, opacity: 0.7 }}>Updating…</span>
@@ -321,6 +352,30 @@ export default function Leads() {
             <option value="quoted">Quoted ({counts.quoted})</option>
             <option value="closed">Closed ({counts.closed})</option>
           </select>
+          <label style={{ fontWeight: 700, fontSize: 14 }}>Follow-up</label>
+          <select
+            value={followUpFilter}
+            onChange={(e) => {
+              const v = e.target.value;
+              setFollowUpFilter(v);
+
+              const next = new URLSearchParams(searchParams);
+              if (v && v !== "all") next.set("followup", v);
+              else next.delete("followup");
+              setSearchParams(next, { replace: true });
+            }}
+            style={{
+              padding: "8px 10px",
+              borderRadius: 4,
+              border: "1px solid #ddd",
+              background: "#fff",
+            }}
+          >
+            <option value="all">All</option>
+            <option value="overdue">Overdue</option>
+            <option value="today">Due today</option>
+            <option value="upcoming">Next 7 days</option>
+          </select>
         </div>
       </div>
 
@@ -343,6 +398,7 @@ export default function Leads() {
                 <th style={th}>Email</th>
                 <th style={th}>Phone</th>
                 <th style={th}>Service</th>
+                <th style={th}>Follow-up</th>
                 <th style={th}>Status</th>
                 <th style={th}>Actions</th>
               </tr>
@@ -466,6 +522,7 @@ export default function Leads() {
                     </div>
                   </td>
                   <td style={td}>{lead.serviceType || "-"}</td>
+                  <td style={td}>{renderFollowUpCell(lead.followUpDate)}</td>
                   <td style={td}>
                     <span
                       style={{
@@ -616,4 +673,116 @@ function statusBadge(status) {
         border: "1px solid #e5e7eb",
       };
   }
+}
+
+function renderFollowUpCell(followUpDate) {
+  if (!followUpDate) return <span style={{ opacity: 0.6 }}>—</span>;
+
+  const bucket = getFollowUpBucket(followUpDate);
+
+  if (bucket === "overdue") {
+    return <span style={{ ...pill, ...pillOverdue }}>Overdue</span>;
+  }
+
+  if (bucket === "today") {
+    return <span style={{ ...pill, ...pillToday }}>Due today</span>;
+  }
+
+  // upcoming / later: show readable date
+  return (
+    <span style={{ fontSize: 13, opacity: 0.85, whiteSpace: "nowrap" }}>
+      {new Date(followUpDate).toLocaleString()}
+    </span>
+  );
+}
+
+function getFollowUpBucket(value) {
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "none";
+
+  // local timezone (Augusta = America/New_York on your machine)
+  const now = new Date();
+  const start = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    0,
+    0,
+    0,
+    0,
+  );
+  const end = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    23,
+    59,
+    59,
+    999,
+  );
+
+  if (d < start) return "overdue";
+  if (d >= start && d <= end) return "today";
+  return "future";
+}
+
+const pill = {
+  display: "inline-block",
+  padding: "4px 10px",
+  borderRadius: 999,
+  fontSize: 12,
+  fontWeight: 800,
+  textTransform: "uppercase",
+  letterSpacing: "0.04em",
+  border: "1px solid #e5e7eb",
+  background: "#fff",
+};
+
+const pillOverdue = {
+  background: "#fef2f2",
+  color: "#991b1b",
+  border: "1px solid #fecaca",
+};
+
+const pillToday = {
+  background: "#fffbeb",
+  color: "#92400e",
+  border: "1px solid #fde68a",
+};
+
+function matchesFollowUpFilter(lead, filter) {
+  if (!filter || filter === "all") return true;
+
+  const d = lead.followUpDate ? new Date(lead.followUpDate) : null;
+  if (!d || isNaN(d.getTime())) return false;
+
+  const now = new Date();
+  const start = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    0,
+    0,
+    0,
+    0,
+  );
+  const end = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    23,
+    59,
+    59,
+    999,
+  );
+
+  if (filter === "overdue") return d < start;
+  if (filter === "today") return d >= start && d <= end;
+  if (filter === "upcoming") {
+    const in7 = new Date(start);
+    in7.setDate(in7.getDate() + 7);
+    return d > end && d <= in7;
+  }
+
+  return true;
 }
