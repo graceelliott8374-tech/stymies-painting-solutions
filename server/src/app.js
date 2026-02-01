@@ -32,6 +32,15 @@ app.get("/api/health", (req, res) => {
     db: mongoose.connection.readyState === 1 ? "connected" : "not_connected",
   });
 });
+app.get("/api/whoami", (req, res) => {
+  res.json({
+    service: "backend",
+    time: new Date().toISOString(),
+  });
+});
+app.get("/", (req, res) => {
+  res.send("API is running");
+});
 
 
 // Global error handler (keep this AFTER all routes)
