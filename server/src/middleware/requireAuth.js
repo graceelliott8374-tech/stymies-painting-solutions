@@ -1,14 +1,17 @@
 const jwt = require("jsonwebtoken");
+const httpError = require("../utils/httpError");
 
 module.exports = function requireAuth(req, res, next) {
   try {
-    const token = req.cookies?.token;
-    if (!token) return res.status(401).json({ error: "Unauthorized." });
+    const token =
+      req.cookies?.token || req.headers.authorization?.replace("Bearer ", "");
+
+    if (!token) return httpError(res, 401, "Unauthorized.");
 
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = payload; // { id, email, role }
+    req.user = payload;
     return next();
   } catch (err) {
-    return res.status(401).json({ error: "Unauthorized." });
+    return httpError(res, 401, "Unauthorized.");
   }
 };
