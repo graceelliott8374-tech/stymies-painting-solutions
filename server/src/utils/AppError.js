@@ -1,3 +1,5 @@
+/* eslint-env node */
+
 class AppError extends Error {
   constructor(
     message,
@@ -17,4 +19,4 @@ class AppError extends Error {
   }
 }
 
-export default AppError;
+module.exports = AppError;

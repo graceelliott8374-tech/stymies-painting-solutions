@@ -23,7 +23,7 @@ function makeRefreshToken(admin) {
   return jwt.sign(
     { id: admin._id.toString() },
     process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
-    { expiresIn: process.env.REFRESH_EXPIRES_IN || "14d" }
+    { expiresIn: process.env.REFRESH_EXPIRES_IN || "14d" },
   );
 }
 
@@ -43,57 +43,57 @@ router.post(
 
     const { email, password } = result.value;
 
-   const admin = await Admin.findOne({ email });
+    const admin = await Admin.findOne({ email });
     if (!admin) return httpError(res, 401, "Invalid credentials.");
 
     const ok = await bcrypt.compare(String(password), admin.passwordHash);
     if (!ok) return httpError(res, 401, "Invalid credentials.");
 
-   const accessToken = makeAccessToken(admin);
-   const refreshToken = makeRefreshToken(admin);
+    const accessToken = makeAccessToken(admin);
+    const refreshToken = makeRefreshToken(admin);
 
-   const isProd = process.env.NODE_ENV === "production";
+    const isProd = process.env.NODE_ENV === "production";
 
-   const accessMs = 15 * 60 * 1000; // 15 minutes
-   const refreshMs = 14 * 24 * 60 * 60 * 1000; // 14 days
+    const accessMs = 15 * 60 * 1000; // 15 minutes
+    const refreshMs = 14 * 24 * 60 * 60 * 1000; // 14 days
 
-   // Access token cookie (short-lived)
-   res.cookie("token", accessToken, {
-     httpOnly: true,
-     secure: isProd,
-     sameSite: isProd ? "none" : "lax",
-     maxAge: accessMs,
-   });
+    // Access token cookie (short-lived)
+    res.cookie("token", accessToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      maxAge: accessMs,
+    });
 
-   // Refresh token cookie (long-lived, used for /refresh)
-   res.cookie("refreshToken", refreshToken, {
-     httpOnly: true,
-     secure: isProd,
-     sameSite: isProd ? "none" : "lax",
-     maxAge: refreshMs,
-     path: "/api/auth/refresh", // cookie only sent to refresh endpoint
-   });
+    // Refresh token cookie (long-lived, used for /refresh)
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      maxAge: refreshMs,
+      path: "/api/auth", // cookie only sent to refresh endpoint
+    });
 
-   // Store refresh session (hashed) for this device
-   admin.refreshTokens.push({
-     tokenHash: hashToken(refreshToken),
-     expiresAt: new Date(Date.now() + refreshMs),
-     userAgent: req.get("user-agent") || "",
-     ip: req.ip || "",
-   });
+    // Store refresh session (hashed) for this device
+    admin.refreshTokens.push({
+      tokenHash: hashToken(refreshToken),
+      expiresAt: new Date(Date.now() + refreshMs),
+      userAgent: req.get("user-agent") || "",
+      ip: req.ip || "",
+    });
 
-   await admin.save();
+    await admin.save();
 
-   res.json({
-     ok: true,
-     user: {
-       id: admin._id,
-       email: admin.email,
-       name: admin.name,
-       role: admin.role,
-     }
-   });
-  })
+    res.json({
+      ok: true,
+      user: {
+        id: admin._id,
+        email: admin.email,
+        name: admin.name,
+        role: admin.role,
+      },
+    });
+  }),
 );
 
 // POST /api/auth/refresh
@@ -109,7 +109,7 @@ router.post(
     try {
       payload = jwt.verify(
         refreshToken,
-        process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET
+        process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
       );
     } catch {
       return httpError(res, 401, "Unauthorized.");
@@ -122,7 +122,9 @@ router.post(
     const accessMs = 15 * 60 * 1000; // 15 minutes
 
     const currentHash = hashToken(refreshToken);
-    const idx = admin.refreshTokens.findIndex((t) => t.tokenHash === currentHash);
+    const idx = admin.refreshTokens.findIndex(
+      (t) => t.tokenHash === currentHash,
+    );
 
     // token not found (revoked / rotated / stolen)
     if (idx === -1) {
@@ -131,7 +133,7 @@ router.post(
         httpOnly: true,
         secure: isProd,
         sameSite: isProd ? "none" : "lax",
-        path: "/api/auth/refresh",
+        path: "/api/auth", // <-- MUST match the cookie path you set
       });
       return httpError(res, 401, "Unauthorized.");
     }
@@ -165,12 +167,11 @@ router.post(
       secure: isProd,
       sameSite: isProd ? "none" : "lax",
       maxAge: refreshMs,
-      path: "/api/auth/refresh",
+      path: "/api/auth",
     });
 
-    // Optional but useful
     res.json({ ok: true });
-  })
+  }),
 );
 
 // POST /api/auth/logout
@@ -185,13 +186,15 @@ router.post(
       try {
         const payload = jwt.verify(
           refreshToken,
-          process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET
+          process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
         );
 
         const admin = await Admin.findById(payload.id);
         if (admin) {
           const h = hashToken(refreshToken);
-          admin.refreshTokens = admin.refreshTokens.filter((t) => t.tokenHash !== h);
+          admin.refreshTokens = admin.refreshTokens.filter(
+            (t) => t.tokenHash !== h,
+          );
           await admin.save();
         }
       } catch {
@@ -211,11 +214,11 @@ router.post(
       httpOnly: true,
       secure: isProd,
       sameSite: isProd ? "none" : "lax",
-      path: "/api/auth/refresh",
+      path: "/api/auth",
     });
 
     res.json({ ok: true });
-  })
+  }),
 );
 
 // GET /api/auth/me

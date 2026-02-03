@@ -1,7 +1,4 @@
-import AppError from "./AppError.js";
-
-export default function errorHandler(err, req, res, next) {
-  // If something throws a plain Error, convert it
+module.exports = function errorHandler(err, req, res, next) {
   const statusCode = err.statusCode || 500;
   const code = err.code || (statusCode >= 500 ? "SERVER_ERROR" : "BAD_REQUEST");
 
@@ -13,11 +10,11 @@ export default function errorHandler(err, req, res, next) {
 
   if (err.details) payload.details = err.details;
 
-  // Helpful in dev, quiet in prod. Humans love leaking stack traces.
+  // Helpful in dev, quiet in prod
   if (process.env.NODE_ENV !== "production") {
     payload.stack = err.stack;
     if (!err.isOperational) payload.originalError = String(err);
   }
 
   res.status(statusCode).json(payload);
-}
+};

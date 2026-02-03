@@ -13,14 +13,24 @@ app.use(cookieParser());
 
 // IMPORTANT for cookie auth in dev:
 // allow credentials + your frontend origin
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.CLIENT_URL, // e.g. https://your-vercel-app.vercel.app or https://stymiespaintingsolutions.com
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: "http://localhost:5173", // change if your React dev server uses a different port
+    origin(origin, cb) {
+      // allow non-browser requests (like Render health checks, curl, Postman)
+      if (!origin) return cb(null, true);
+
+      if (allowedOrigins.includes(origin)) return cb(null, true);
+
+      return cb(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   }),
 );
-
-
 
 app.use("/api/auth", authRoutes);
 app.use("/api/leads", leadRoutes);
@@ -32,16 +42,10 @@ app.get("/api/health", (req, res) => {
     db: mongoose.connection.readyState === 1 ? "connected" : "not_connected",
   });
 });
-app.get("/api/whoami", (req, res) => {
-  res.json({
-    service: "backend",
-    time: new Date().toISOString(),
-  });
-});
+
 app.get("/", (req, res) => {
   res.send("API is running");
 });
-
 
 // Global error handler (keep this AFTER all routes)
 app.use((err, req, res, next) => {
