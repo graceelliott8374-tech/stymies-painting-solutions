@@ -123,12 +123,9 @@ export default function Leads() {
 
   async function unarchiveLead(id) {
     try {
-      const res = await apiFetch(
-        `http://localhost:5000/api/leads/${id}/unarchive`,
-        {
-          method: "PATCH",
-        },
-      );
+      const res = await apiFetch(`/api/leads/${id}/unarchive`, {
+        method: "PATCH",
+      });
 
       if (!res.ok) return;
 
