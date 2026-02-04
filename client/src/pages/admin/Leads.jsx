@@ -57,8 +57,8 @@ export default function Leads() {
 
   useEffect(() => {
     const url = showArchived
-      ? "http://localhost:5000/api/leads?archived=true"
-      : "http://localhost:5000/api/leads";
+      ? "https://stynies-painting-solutions.onrender.com/api/leads?archived=true"
+      : "https://stynies-painting-solutions.onrender.com/api/leads";
 
     // Only show the full-screen loader on initial load
     if (leads.length === 0) setLoading(true);
