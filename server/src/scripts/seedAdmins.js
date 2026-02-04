@@ -8,9 +8,14 @@ async function run() {
 
   const admins = [
     {
-      name: process.env.SEED_ADMIN_NAME || "Admin",
-      email: process.env.SEED_ADMIN_EMAIL,
-      password: process.env.SEED_ADMIN_PASSWORD,
+      name: process.env.SEED_ADMIN1_NAME || "Grace",
+      email: process.env.SEED_ADMIN1_EMAIL,
+      password: process.env.SEED_ADMIN1_PASSWORD,
+    },
+    {
+      name: process.env.SEED_ADMIN2_NAME || "Bryan",
+      email: process.env.SEED_ADMIN2_EMAIL,
+      password: process.env.SEED_ADMIN2_PASSWORD,
     },
   ].filter((a) => a.email && a.password);
 
