@@ -8,6 +8,8 @@ const PORT = process.env.PORT || 5000;
 async function start() {
   try {
     await connectDB();
+    // TEMP: seed admins on startup (remove after first successful deploy)
+    require("./scripts/seedAdmins");
 
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
