@@ -80,14 +80,11 @@ export default function Leads() {
 
   async function updateStatus(id, status) {
     try {
-      const res = await apiFetch(
-        `http://localhost:5000/api/leads/${id}/status`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status }),
-        },
-      );
+      const res = await apiFetch(`/api/leads/${id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
 
       if (!res.ok) {
         // optional: inspect error later
