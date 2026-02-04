@@ -108,12 +108,9 @@ export default function Leads() {
     if (!ok) return;
 
     try {
-      const res = await apiFetch(
-        `http://localhost:5000/api/leads/${id}/archive`,
-        {
-          method: "PATCH",
-        },
-      );
+      const res = await apiFetch(`/api/leads/${id}/archive`, {
+        method: "PATCH",
+      });
 
       if (!res.ok) return;
 
