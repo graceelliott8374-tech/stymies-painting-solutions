@@ -28,11 +28,14 @@ export default function Contact() {
     };
 
     try {
-      const res = await fetch("http://127.0.0.1:5000/api/leads/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        "https://stynies-painting-solutions.onrender.com/api/leads/contact",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
 
       // Safe parsing: avoids "Unexpected end of JSON input"
       const text = await res.text();
