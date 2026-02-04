@@ -17,12 +17,15 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include", // REQUIRED for cookie auth
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await fetch(
+        "https://stynies-painting-solutions.onrender.com/api/auth/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // REQUIRED for cookie auth
+          body: JSON.stringify({ email, password }),
+        },
+      );
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || "Login failed.");
