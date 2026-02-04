@@ -2,7 +2,6 @@ import { useState } from "react";
 import useSEO from "../../utils/useSEO";
 import { Link } from "react-router-dom";
 
-
 export default function Quote() {
   const [submitted, setSubmitted] = useState(false);
 
@@ -63,11 +62,14 @@ export default function Quote() {
               };
 
               try {
-                const res = await fetch("http://localhost:5000/api/leads", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(payload),
-                });
+                const res = await fetch(
+                  "https://stynies-painting-solutions.onrender.com/api/leads",
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                  },
+                );
 
                 if (!res.ok) {
                   const err = await res.json();
