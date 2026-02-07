@@ -15,8 +15,11 @@ app.use(cookieParser());
 // allow credentials + your frontend origin
 const allowedOrigins = [
   "http://localhost:5173",
-  process.env.CLIENT_URL, // e.g. https://your-vercel-app.vercel.app or https://stymiespaintingsolutions.com
+  "https://www.stymiespaintingsolutions.com",
+  "https://stymiespaintingsolutions.com",
+  process.env.CLIENT_URL,
 ].filter(Boolean);
+
 
 app.use(
   cors({
