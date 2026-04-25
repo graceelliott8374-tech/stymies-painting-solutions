@@ -15,8 +15,7 @@ export default function DrywallRepair() {
             surface issues so your walls look smooth and paint-ready.
           </p>
           <p style={{ marginTop: 8, fontWeight: 600 }}>
-            Fully insured with General Liability coverage. OSHA 10 certification
-            scheduled for February.
+            Fully insured with General Liability coverage. OSHA 10 certified.
           </p>
 
           <Link to="/quote" className="button button-primary">

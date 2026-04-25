@@ -27,8 +27,7 @@ export default function InteriorPainting() {
             clean edges, and a smooth finish that holds up over time.
           </p>
           <p style={{ marginTop: 8, fontWeight: 600 }}>
-            Fully insured with General Liability coverage. OSHA 10 certification
-            scheduled for February.
+            Fully insured with General Liability coverage. OSHA 10 certified.
           </p>
 
           <Link to="/quote" className="button button-primary">

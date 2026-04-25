@@ -19,8 +19,7 @@ export default function About() {
             last.
           </p>
           <p style={{ marginTop: 8, fontWeight: 600 }}>
-            Fully insured with General Liability coverage. OSHA 10 certification
-            scheduled for February.
+            Fully insured with General Liability coverage. OSHA 10 certified.
           </p>
           <p>
             Every job is approached with the same standards: protect the space,

@@ -25,8 +25,7 @@ export default function Staining() {
             appeal.
           </p>
           <p style={{ marginTop: 8, fontWeight: 600 }}>
-            Fully insured with General Liability coverage. OSHA 10 certification
-            scheduled for February.
+            Fully insured with General Liability coverage. OSHA 10 certified.
           </p>
 
           <Link to="/quote" className="button button-primary">
