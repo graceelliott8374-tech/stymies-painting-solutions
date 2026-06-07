@@ -19,6 +19,8 @@ import PorchAfter2 from "../assets/gallery/full/porch-after2.jpg";
 import WallBefore from "../assets/gallery/full/wall-before.jpg";
 import WallAfter from "../assets/gallery/full/wall-after.jpg";
 import Gutters from "../assets/gallery/full/gutters.jpg";
+import Exterior1Before from "../assets/gallery/full/Exterior1_Before.jpg";
+import Exterior1After from "../assets/gallery/full/Exterior1_After.jpg";
 
 const gallery = [
   {
@@ -74,6 +76,12 @@ const gallery = [
     title: "Gutter Detail Work",
     before: Gutters,
     after: Gutters,
+  },
+  {
+    id: "house-exterior-white",
+    title: "Complete Exterior Color Transformation",
+    before: Exterior1Before,
+    after: Exterior1After,
   },
 ];
 
