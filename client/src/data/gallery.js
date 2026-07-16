@@ -23,8 +23,7 @@ import Exterior1Before from "../assets/gallery/full/Exterior1_Before.jpg";
 import Exterior1After from "../assets/gallery/full/Exterior1_After.jpg";
 import FrontPorchColumnsBefore from "../assets/gallery/full/FrontPorchColumnsBefore.jpg";
 import FrontPorchColumnsAfter from "../assets/gallery/full/FrontPorchColumnsAfter.jpg";
-import PorchColumnsBefore from "../assets/gallery/full/PorchColumnsBefore.jpg";
-import PorchColumnsAfter from "../assets/gallery/full/PorchColumnsAfter.jpg";
+
 
 import Deck1Before from "../assets/gallery/full/Deck1Before.jpg";
 import Deck1After from "../assets/gallery/full/Deck1After.jpg";
