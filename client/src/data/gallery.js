@@ -21,6 +21,19 @@ import WallAfter from "../assets/gallery/full/wall-after.jpg";
 import Gutters from "../assets/gallery/full/gutters.jpg";
 import Exterior1Before from "../assets/gallery/full/Exterior1_Before.jpg";
 import Exterior1After from "../assets/gallery/full/Exterior1_After.jpg";
+import FrontPorchColumnsBefore from "../assets/gallery/full/FrontPorchColumnsBefore.jpg";
+import FrontPorchColumnsAfter from "../assets/gallery/full/FrontPorchColumnsAfter.jpg";
+import PorchColumnsBefore from "../assets/gallery/full/PorchColumnsBefore.jpg";
+import PorchColumnsAfter from "../assets/gallery/full/PorchColumnsAfter.jpg";
+
+import Deck1Before from "../assets/gallery/full/Deck1Before.jpg";
+import Deck1After from "../assets/gallery/full/Deck1After.jpg";
+
+import Deck2Before from "../assets/gallery/full/Deck2Before.jpg";
+import Deck2After from "../assets/gallery/full/Deck2After.jpg";
+
+import ExteriorChimneyBefore from "../assets/gallery/full/ExteriorChimneyBefore.jpg";
+import ExteriorChimneyAfter from "../assets/gallery/full/ExteriorChimneyAfter.jpg";
 
 const gallery = [
   {
@@ -82,6 +95,30 @@ const gallery = [
     title: "Complete Exterior Color Transformation",
     before: Exterior1Before,
     after: Exterior1After,
+  },
+  {
+    id: "front-porch-columns",
+    title: "Front Porch Column Restoration",
+    before: FrontPorchColumnsBefore,
+    after: FrontPorchColumnsAfter,
+  },
+  {
+    id: "rear-deck-wide",
+    title: "Rear Deck Restoration",
+    before: Deck1Before,
+    after: Deck1After,
+  },
+  {
+    id: "rear-deck-side",
+    title: "Rear Deck Stair & Railing Restoration",
+    before: Deck2Before,
+    after: Deck2After,
+  },
+  {
+    id: "exterior-chimney",
+    title: "Exterior Chimney Refresh",
+    before: ExteriorChimneyBefore,
+    after: ExteriorChimneyAfter,
   },
 ];
 
