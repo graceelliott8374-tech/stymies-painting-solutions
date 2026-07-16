@@ -23,16 +23,16 @@ import Exterior1Before from "../assets/gallery/full/Exterior1_Before.jpg";
 import Exterior1After from "../assets/gallery/full/Exterior1_After.jpg";
 import FrontPorchColumnsBefore from "../assets/gallery/full/FrontPorchColumnsBefore.jpg";
 import FrontPorchColumnsAfter from "../assets/gallery/full/FrontPorchColumnsAfter.jpg";
-
-
 import Deck1Before from "../assets/gallery/full/Deck1Before.jpg";
 import Deck1After from "../assets/gallery/full/Deck1After.jpg";
-
 import Deck2Before from "../assets/gallery/full/Deck2Before.jpg";
 import Deck2After from "../assets/gallery/full/Deck2After.jpg";
-
 import ExteriorChimneyBefore from "../assets/gallery/full/ExteriorChimneyBefore.jpg";
 import ExteriorChimneyAfter from "../assets/gallery/full/ExteriorChimneyAfter.jpg";
+import UnderDeckBefore from "../assets/gallery/full/UnderDeckBefore.jpg";
+import UnderDeckAfter from "../assets/gallery/full/UnderDeckAfter.jpg";
+import DeckLatticeBefore from "../assets/gallery/full/DeckLatticeBefore.jpg";
+import DeckLatticeAfter from "../assets/gallery/full/DeckLatticeAfter.jpg";
 
 const gallery = [
   {
@@ -118,6 +118,18 @@ const gallery = [
     title: "Exterior Chimney Refresh",
     before: ExteriorChimneyBefore,
     after: ExteriorChimneyAfter,
+  },
+  {
+    id: "under-deck-ceiling",
+    title: "Under Deck Ceiling Restoration",
+    before: UnderDeckBefore,
+    after: UnderDeckAfter,
+  },
+  {
+    id: "deck-lattice",
+    title: "Deck Lattice & Skirting Transformation",
+    before: DeckLatticeBefore,
+    after: DeckLatticeAfter,
   },
 ];
 
