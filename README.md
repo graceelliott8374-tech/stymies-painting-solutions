@@ -1,5 +1,11 @@
 # Stymie’s Painting Solutions (MERN Website)
 
+[![Live Website](https://img.shields.io/badge/Live-Website-2ea44f)](https://www.stymiespaintingsolutions.com)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)]
+[![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?logo=vercel&logoColor=white)](https://www.stymiespaintingsolutions.com)
+
 Marketing website + admin dashboard for **Stymie’s Painting Solutions**, a local painting company serving **Richmond County & Columbia County, GA**.  
 Built with a MERN stack (React + Node/Express + MongoDB) to showcase services, display project photos, collect leads, and manage submissions through an admin dashboard.
 
